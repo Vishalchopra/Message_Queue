@@ -25,33 +25,36 @@ int process_client()
 //	{
 		create_mq();
 	
-		count = msgrcv(mq_msg_id[1], client_data, sizeof(struct client_data_mq), 0, 0);
+		count = msgrcv(mq_msg_id[0], client_data, sizeof(struct client_data_mq), 0, 0);
 		if( count == -1 ){
 			perror("msgrcv");
 			exit("EXIT_FAILURE");
 		}
 //	}
-	printf("Number of byte copied in structure: %d\n", count);
 	count = detect_client( client_data );
+	printf("Number of byte copied in structure: %d %d %d\n", count, client_data -> oper1, client_data -> oper2);
+	create_mq();
+	client_process -> type = 5555;
 	client_process -> result = count;
-	if ( msgsnd(  mq_msg_id[2], client_process, sizeof(struct client_pro_data_mq),0  ) == -1){
+	if(msgsnd(mq_msg_id[1], client_process, sizeof(struct client_pro_data_mq),0) == -1){
 		perror("msgsnd");
 		exit("EXIT_FAILURE");
 	}
+	printf("Send data successfully\n");
 	return 0;
 }
 
 int create_mq()
 {
-	char index;
-	static uint32_t key;
-	key = 994;
+	static char index = 0;
+	static uint32_t key = 965;
 	mq_key[ index ] = key;
 	mq_msg_id[index] = msgget(mq_key[index], 0666|IPC_CREAT);
 	if( mq_msg_id[index] == -1){
 		perror("msgget");
 		exit("EXIT_FAILURE");
 	}
+	printf("value of index %d %d\n", index, key);
 	index++;
 	key++;
 	return 0;
@@ -71,6 +74,5 @@ int detect_client( struct client_data_mq *client )
 	break;
 	
 	}
-	create_mq();
 	return result;
 }
